@@ -7,8 +7,8 @@ import Layout from "./_layout";
 const Home = () => {
   const [imageSrc, setimageSrc] = useState("");
   const [isMinting, setIsMinting] = useState(false);
-  const { isActive, account } = useWeb3React();
-  const [avaPunks] = useAvaPunks();
+  const { isActive, account, connector } = useWeb3React();
+  const { avaPunks } = useAvaPunks();
 
   const getAvaPunksData = useCallback(async () => {
     if (avaPunks) {
@@ -23,15 +23,9 @@ const Home = () => {
     }
   }, [account, avaPunks]);
 
-  useEffect(() => {
-    getAvaPunksData();
-  }, [getAvaPunksData]);
-
-  const mint = useCallback(() => {
+  const mint = useCallback(async () => {
     if (avaPunks) {
       setIsMinting(true);
-      console.log("account", account);
-
       avaPunks.methods
         .mint()
         .send({ from: account })
@@ -39,25 +33,50 @@ const Home = () => {
           toast("¡Transacción enviada: " + hash + "!", {
             position: "bottom-center",
             icon: "🚀",
+            style: {
+              wordBreak: "break-all",
+            },
           });
         })
         .on("receipt", () => {
           toast("¡Transacción confirmada! ", {
             position: "bottom-center",
             icon: "👏🏻",
+            style: {
+              wordBreak: "break-all",
+            },
           });
           setIsMinting(false);
         })
         .on("error", (error) => {
           toast.error("!Transacción fallida! " + error.message, {
             position: "bottom-center",
+            style: {
+              wordBreak: "break-all",
+            },
           });
           setIsMinting(false);
         });
-
-      setIsMinting(false);
     }
   }, [account, avaPunks]);
+
+  // Connect eagerly to metamask
+  useEffect(() => {
+    const call = async () => {
+      try {
+        void (await connector.connectEagerly?.());
+      } catch (e) {
+        console.debug("Not metamask connect", e);
+      }
+    };
+
+    call();
+  }, [connector]);
+
+  useEffect(() => {
+    getAvaPunksData();
+  }, [getAvaPunksData]);
+
   return (
     <Layout>
       {
