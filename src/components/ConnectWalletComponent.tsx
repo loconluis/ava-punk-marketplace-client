@@ -1,39 +1,53 @@
-import { useWeb3React } from "@web3-react/core";
-import { useCallback, useEffect } from "react";
-import { formattedAddress } from "../utils";
+import { useWeb3React } from '@web3-react/core';
+import { useCallback, useEffect, useState } from 'react';
+import { formattedAddress } from '../utils';
 
 const ConnectWalletComponent = () => {
-  const { connector, isActive, accounts } = useWeb3React();
+  const [balance, setBalance] = useState<number | string>(0);
+  const { connector, isActive, account, provider } = useWeb3React();
+
+  const getBalance = useCallback(async () => {
+    if (isActive && account) {
+      const toSet = await provider?.getBalance(account, undefined);
+      // @ts-expect-error Ts has a exception when try to parse BigInt into Integers
+      setBalance(() => (parseInt(toSet) / 1e18).toFixed(3));
+    }
+  }, [account, isActive, provider]);
 
   const connect = useCallback(async () => {
     await connector.activate();
-    localStorage.setItem("prevConnected", "true");
+    localStorage.setItem('prevConnected', 'true');
   }, [connector]);
 
   const disconnect = async () => {
     await connector.deactivate?.();
     await connector.resetState();
-    localStorage.removeItem("prevConnected");
+    localStorage.removeItem('prevConnected');
   };
-
   useEffect(() => {
-    if (localStorage.getItem("prevConnected") == "true") {
+    if (localStorage.getItem('prevConnected') == 'true') {
       connect();
     }
   }, [connect]);
+
+  useEffect(() => {
+    if (isActive) {
+      getBalance();
+    }
+  }, [getBalance, isActive]);
 
   return (
     <>
       {isActive ? (
         <div className="flex flex-row gap-2 ">
-          <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-          <span className="rounded-lg bg-blue-800 px-4 py-2 flex flex-row gap-2 align-middle items-center justify-center">
-            {accounts && formattedAddress(accounts?.[0] || "")}
-            <span
-              className="cursor-pointer"
-              // onClick={() => setIsConnected(false)}
-              onClick={disconnect}
-            >
+          <span className="rounded-lg bg-blue-800 px-4 py-2 flex flex-row gap-1 md:gap-2 align-middle items-center justify-center">
+            {account && formattedAddress(account)}
+            {balance && (
+              <span className="rounded bg-slate-500 text-white md:px-2 px-1">
+                {balance ?? 0}
+              </span>
+            )}
+            <span className="cursor-pointer" onClick={disconnect}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -53,7 +67,6 @@ const ConnectWalletComponent = () => {
         </div>
       ) : (
         <div
-          // onClick={() => setIsConnected(true)}
           onClick={connect}
           className="bg-black rounded-lg px-4 py-2 cursor-pointer"
         >

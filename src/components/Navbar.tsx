@@ -1,4 +1,4 @@
-import ConnectWalletComponent from "./ConnectWalletComponent";
+import ConnectWalletComponent from './ConnectWalletComponent';
 
 const Navbar = () => {
   return (

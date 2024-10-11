@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { MetaMaskProvider } from "./config/web3";
+import { MetaMaskProvider } from "./hooks/useWeb3ToEth";
 
 interface Window {
   ethereum?: MetaMaskProvider;
