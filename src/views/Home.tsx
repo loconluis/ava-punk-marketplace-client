@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useWeb3React } from "@web3-react/core";
 import toast, { Toaster } from "react-hot-toast";
 import useAvaPunks from "../hooks/useAvaPunks";
-import Layout from "./_layout";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [imageSrc, setimageSrc] = useState("");
@@ -78,7 +78,7 @@ const Home = () => {
   }, [getAvaPunksData]);
 
   return (
-    <Layout>
+    <>
       {
         <div>
           <div className=" flex justify-center items-center">
@@ -116,9 +116,12 @@ const Home = () => {
                   >
                     Obten tu punk
                   </button>
-                  <button className="text-white hover:text-bg-blue-600 focus:ring-4  font-medium rounded-lg text-sm md:text-lg px-5 py-2.5 me-2 mb-2  dark:hover:text-blue-600 focus:outline-none ">
-                    Galeria
-                  </button>
+
+                  <Link to="/punks">
+                    <button className="text-white hover:text-bg-blue-600 focus:ring-4  font-medium rounded-lg text-sm md:text-lg px-5 py-2.5 me-2 mb-2  dark:hover:text-blue-600 focus:outline-none ">
+                      Galeria
+                    </button>
+                  </Link>
                 </div>
               </div>
               <div className="flex flex-col justify-center">
@@ -159,7 +162,7 @@ const Home = () => {
           </div>
         </div>
       }
-    </Layout>
+    </>
   );
 };
 
