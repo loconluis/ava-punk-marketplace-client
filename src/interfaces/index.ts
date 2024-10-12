@@ -23,6 +23,7 @@ export interface IPunksData {
   topType: string;
   metadata: Metadata;
   _tokenId: string;
+  dna: string | bigint;
 }
 
 export interface GetAvaDataProps {

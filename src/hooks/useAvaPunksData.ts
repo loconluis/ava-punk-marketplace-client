@@ -100,3 +100,46 @@ export const useAvaPunksData = () => {
     update,
   };
 };
+
+const initialState = {
+  tokenURI: "",
+  owner: "",
+  accesoriesType: "",
+  clotheColor: "",
+  clotheType: "",
+  eyeType: "",
+  eyebrowType: "",
+  facialHairColor: "",
+  hairColor: "",
+  hatColor: "",
+  graphicType: "",
+  mouthType: "",
+  skinColor: "",
+  topType: "",
+  metadata: { description: "", name: "", image: "" },
+  _tokenId: "",
+  dna: "",
+};
+
+// singular
+export const useAvaPunkData = (tokenId: string | number | null = null) => {
+  const [punk, setPunk] = useState<IPunksData>(initialState);
+  const [loading, setLoading] = useState(false);
+  const { avaPunks } = useAvaPunks();
+
+  const update = useCallback(async () => {
+    if (avaPunks && tokenId != null) {
+      setLoading(true);
+      const _punk = await getAvaData({ _tokenId: tokenId, avaPunks });
+      // @ts-expect-error Issue when the type of the methods inside the contract
+      setPunk(_punk);
+      setLoading(false);
+    }
+  }, [avaPunks, tokenId]);
+
+  useEffect(() => {
+    update();
+  }, [update]);
+
+  return { punk, loading };
+};
