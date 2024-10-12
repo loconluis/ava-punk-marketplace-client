@@ -1,14 +1,21 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAvaPunkData } from "../hooks/useAvaPunksData";
+import { useWeb3React } from "@web3-react/core";
+import { isAddress } from "web3-validator";
+import toast, { Toaster } from "react-hot-toast";
 import Loader from "../components/Loader";
 import PunkCard from "../components/PunkCard";
+import Alert from "../components/Alert";
 import { formattedAddress } from "../utils";
-import { useWeb3React } from "@web3-react/core";
+import useAvaPunks from "../hooks/useAvaPunks";
 
 const Details = () => {
-  const { account } = useWeb3React();
+  const { account, isActive } = useWeb3React();
+  const { avaPunks } = useAvaPunks();
   const { tokenid } = useParams();
-  const { loading, punk } = useAvaPunkData(tokenid);
+  const { loading, punk, update } = useAvaPunkData(tokenid);
+  const [transferring, setTransferring] = useState(false);
   const keys = Object.keys(punk).filter(
     (key) =>
       key !== "metadata" &&
@@ -17,6 +24,67 @@ const Details = () => {
       key !== "dna" &&
       key !== "owner"
   );
+
+  const transfer = () => {
+    setTransferring(true);
+    if (avaPunks) {
+      const address = prompt("Ingresa la dirección:") || "";
+      const validAddress = isAddress(address);
+      if (!validAddress) {
+        toast.error(
+          "Dirección inválida. No corresponde a una dirección de Ethereum",
+          {
+            position: "bottom-center",
+            style: {
+              wordBreak: "break-all",
+            },
+          }
+        );
+        setTransferring(false);
+      } else {
+        avaPunks.methods
+          .safeTransferFrom(punk.owner, address, punk._tokenId)
+          .send({ from: account })
+          .on("transactionHash", (hash) => {
+            toast("¡Transferencia enviada: " + hash + "!", {
+              position: "bottom-center",
+              icon: "📦",
+              style: {
+                wordBreak: "break-all",
+              },
+            });
+          })
+          .on("receipt", () => {
+            toast(
+              `¡Transferencia confirmada!. El avapunk ahora peretence a ${address}.`,
+              {
+                position: "bottom-center",
+                icon: "✅",
+                style: {
+                  wordBreak: "break-all",
+                },
+              }
+            );
+            setTransferring(false);
+            update();
+          })
+          .on("error", () => {
+            toast.error("Hubo un problema en la transferencia", {
+              position: "bottom-center",
+              style: {
+                wordBreak: "break-all",
+              },
+            });
+            setTransferring(false);
+          });
+      }
+    }
+  };
+
+  if (!isActive) {
+    return <Alert />;
+  }
+
   return (
     <div className="flex justify-center items-center my-10">
       {loading ? (
@@ -27,10 +95,12 @@ const Details = () => {
             <div className="flex flex-col justify-center items-center">
               <PunkCard image={punk.metadata.image} name={punk.metadata.name} />
               <button
-                disabled={account !== punk.owner}
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 mt-5 w-72"
+                disabled={transferring || account !== punk.owner}
+                className="flex flex-row justify-center items-center gap-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 enabled:focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1.5 me-2 mb-2 dark:bg-blue-600 dark:enabled:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 mt-5 w-72 disabled:bg-blue-400 disabled:cursor-not-allowed "
+                onClick={transfer}
               >
-                Transferir
+                {transferring ? <Loader size={5} /> : ""}
+                {account !== punk.owner ? "No eres el dueño" : "Transferir"}
               </button>
             </div>
           </div>
@@ -83,6 +153,7 @@ const Details = () => {
                     </span>
                   ))}
                 </div>
+                <Toaster />
               </div>
             </div>
           </div>

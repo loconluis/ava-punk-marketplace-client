@@ -3,23 +3,27 @@ import { useWeb3React } from "@web3-react/core";
 import toast, { Toaster } from "react-hot-toast";
 import useAvaPunks from "../hooks/useAvaPunks";
 import { Link } from "react-router-dom";
+import { formattedAddress, getRandomNumber } from "../utils";
 
 const Home = () => {
   const [imageSrc, setimageSrc] = useState("");
   const [isMinting, setIsMinting] = useState(false);
+  const [randomNumber, setRandomNumber] = useState(0);
   const { isActive, account, connector } = useWeb3React();
   const { avaPunks } = useAvaPunks();
 
   const getAvaPunksData = useCallback(async () => {
     if (avaPunks) {
       const totalSupply = await avaPunks.methods.totalSupply().call();
+      const randomTokenId = getRandomNumber(0, Number(totalSupply));
       const dnaPreview = await avaPunks.methods
-        .deterministicPseudRandomDNA(totalSupply, account)
+        .deterministicPseudRandomDNA(randomTokenId, account)
         .call();
       const image: string = await avaPunks.methods
         .imageByDNA(dnaPreview)
         .call();
       setimageSrc(image);
+      setRandomNumber(randomTokenId);
     }
   }, [account, avaPunks]);
 
@@ -114,7 +118,7 @@ const Home = () => {
                     onClick={mint}
                     className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm md:text-lg px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                   >
-                    Obten tu punk
+                    Obtén tu punk
                   </button>
 
                   <Link to="/punks">
@@ -136,7 +140,7 @@ const Home = () => {
                       Next ID:
                     </span>
                     <span className="ml-2 bg-blue-600 rounded px-1 text-white font-semibold">
-                      1
+                      {randomNumber}
                     </span>
                   </p>
                   <p className="py-2">
@@ -144,7 +148,7 @@ const Home = () => {
                       Dirección:
                     </span>
                     <span className="ml-2 bg-blue-600 rounded px-1 text-white font-semibold">
-                      0000...0x12
+                      {formattedAddress(account + "")}
                     </span>
                   </p>
                 </div>

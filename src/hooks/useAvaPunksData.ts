@@ -141,5 +141,5 @@ export const useAvaPunkData = (tokenId: string | number | null = null) => {
     update();
   }, [update]);
 
-  return { punk, loading };
+  return { punk, loading, update };
 };
