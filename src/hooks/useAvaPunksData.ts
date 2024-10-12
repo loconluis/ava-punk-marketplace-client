@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { isAddress, ValidInputTypes } from "web3-validator";
 import useAvaPunks from "./useAvaPunks";
 import { IPunksData, GetAvaDataProps } from "../interfaces";
 
@@ -68,19 +69,30 @@ export const getAvaData = async ({ avaPunks, _tokenId }: GetAvaDataProps) => {
 };
 
 // Plural
-export const useAvaPunksData = () => {
+export const useAvaPunksData = ({ owner }: { owner: ValidInputTypes }) => {
   const [punks, setPunks] = useState<IPunksData[] | []>([]);
   const [loading, setLoading] = useState(false);
 
   const { avaPunks } = useAvaPunks();
 
   const update = useCallback(async () => {
-    if (avaPunks) {
+    if (avaPunks && owner) {
       setLoading(true);
-      const totalSupply = await avaPunks.methods.totalSupply().call();
-      const tokenIdArr = new Array(parseInt(totalSupply + ""))
-        .fill({})
-        .map((_, index) => index);
+      let tokenIdArr;
+      if (!isAddress(owner)) {
+        const totalSupply = await avaPunks.methods.totalSupply().call();
+        tokenIdArr = new Array(parseInt(totalSupply + ""))
+          .fill({})
+          .map((_, index) => index);
+      } else {
+        const balanceOf = await avaPunks.methods.balanceOf(owner).call();
+        const tokenIdbyOwnerArr = new Array(parseInt(balanceOf + ""))
+          .fill({})
+          .map((_, index) =>
+            avaPunks.methods.tokenOfOwnerByIndex(owner, index).call()
+          );
+        tokenIdArr = await Promise.all(tokenIdbyOwnerArr);
+      }
       const punkPromise = tokenIdArr.map((tokenid) =>
         getAvaData({ avaPunks, _tokenId: tokenid })
       );
@@ -89,11 +101,11 @@ export const useAvaPunksData = () => {
       setPunks(_punks);
       setLoading(false);
     }
-  }, [avaPunks]);
+  }, [avaPunks, owner]);
 
   useEffect(() => {
     update();
-  }, [update]);
+  }, [update, owner]);
   return {
     loading,
     punks,
@@ -122,7 +134,9 @@ const initialState = {
 };
 
 // singular
-export const useAvaPunkData = (tokenId: string | number | null = null) => {
+export const useAvaPunkData = (
+  tokenId: number | void | [] | (unknown[] & [])
+) => {
   const [punk, setPunk] = useState<IPunksData>(initialState);
   const [loading, setLoading] = useState(false);
   const { avaPunks } = useAvaPunks();

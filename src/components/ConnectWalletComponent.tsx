@@ -1,10 +1,13 @@
-import { useWeb3React } from '@web3-react/core';
-import { useCallback, useEffect, useState } from 'react';
-import { formattedAddress } from '../utils';
+import { useWeb3React } from "@web3-react/core";
+import { useCallback, useEffect, useState } from "react";
+import { formattedAddress } from "../utils";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const ConnectWalletComponent = () => {
-  const [balance, setBalance] = useState<number | string>(0);
   const { connector, isActive, account, provider } = useWeb3React();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [balance, setBalance] = useState<number | string>(0);
 
   const getBalance = useCallback(async () => {
     if (isActive && account) {
@@ -16,16 +19,16 @@ const ConnectWalletComponent = () => {
 
   const connect = useCallback(async () => {
     await connector.activate();
-    localStorage.setItem('prevConnected', 'true');
+    localStorage.setItem("prevConnected", "true");
   }, [connector]);
 
   const disconnect = async () => {
+    localStorage.removeItem("prevConnected");
     await connector.deactivate?.();
     await connector.resetState();
-    localStorage.removeItem('prevConnected');
   };
   useEffect(() => {
-    if (localStorage.getItem('prevConnected') == 'true') {
+    if (localStorage.getItem("prevConnected") == "true") {
       connect();
     }
   }, [connect]);
@@ -36,12 +39,22 @@ const ConnectWalletComponent = () => {
     }
   }, [getBalance, isActive]);
 
+  useEffect(() => {
+    if (pathname === "/punks" && isActive && account) {
+      navigate(`/punks?address=${account}`, {
+        replace: true,
+      });
+    }
+  }, [account, isActive, navigate]);
+
   return (
     <>
       {isActive ? (
         <div className="flex flex-row gap-2 ">
           <span className="rounded-lg bg-blue-800 px-4 py-2 flex flex-row gap-1 md:gap-2 align-middle items-center justify-center">
-            {account && formattedAddress(account)}
+            <Link to={`/punks?address=${account}`}>
+              {account && formattedAddress(account)}
+            </Link>
             {balance && (
               <span className="rounded bg-slate-500 text-white md:px-2 px-1">
                 {balance ?? 0}

@@ -14,7 +14,7 @@ const Details = () => {
   const { account, isActive } = useWeb3React();
   const { avaPunks } = useAvaPunks();
   const { tokenid } = useParams();
-  const { loading, punk, update } = useAvaPunkData(tokenid);
+  const { loading, punk, update } = useAvaPunkData(Number(tokenid));
   const [transferring, setTransferring] = useState(false);
   const keys = Object.keys(punk).filter(
     (key) =>

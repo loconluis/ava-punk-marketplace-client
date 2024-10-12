@@ -28,5 +28,5 @@ export interface IPunksData {
 
 export interface GetAvaDataProps {
   avaPunks: Contract<ContractAbi>;
-  _tokenId: number | string;
+  _tokenId: number | void | [] | (unknown[] & []);
 }

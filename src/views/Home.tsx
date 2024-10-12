@@ -9,7 +9,7 @@ const Home = () => {
   const [imageSrc, setimageSrc] = useState("");
   const [isMinting, setIsMinting] = useState(false);
   const [randomNumber, setRandomNumber] = useState(0);
-  const { isActive, account, connector } = useWeb3React();
+  const { isActive, account } = useWeb3React();
   const { avaPunks } = useAvaPunks();
 
   const getAvaPunksData = useCallback(async () => {
@@ -64,19 +64,6 @@ const Home = () => {
     }
   }, [account, avaPunks]);
 
-  // Connect eagerly to metamask
-  useEffect(() => {
-    const call = async () => {
-      try {
-        void (await connector.connectEagerly?.());
-      } catch (e) {
-        console.debug("Not metamask connect", e);
-      }
-    };
-
-    call();
-  }, [connector]);
-
   useEffect(() => {
     getAvaPunksData();
   }, [getAvaPunksData]);
@@ -114,16 +101,18 @@ const Home = () => {
                 </div>
                 <div>
                   <button
-                    disabled={isMinting && !avaPunks}
+                    disabled={isMinting || !isActive || !avaPunks}
                     onClick={mint}
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm md:text-lg px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm md:text-lg px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:enabled:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 disabled:bg-blue-400 disabled:cursor-not-allowed"
                   >
                     Obtén tu punk
                   </button>
 
-                  <Link to="/punks">
+                  <Link
+                    to={`${isActive ? `/punks?address=${account}` : "/punks"}`}
+                  >
                     <button className="text-white hover:text-bg-blue-600 focus:ring-4  font-medium rounded-lg text-sm md:text-lg px-5 py-2.5 me-2 mb-2  dark:hover:text-blue-600 focus:outline-none ">
-                      Galeria
+                      Ir a tú Galeria
                     </button>
                   </Link>
                 </div>
