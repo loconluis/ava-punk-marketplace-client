@@ -45,7 +45,7 @@ const ConnectWalletComponent = () => {
         replace: true,
       });
     }
-  }, [account, isActive, navigate]);
+  }, [account, isActive, navigate, pathname]);
 
   return (
     <>
