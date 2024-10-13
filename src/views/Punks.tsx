@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState } from "react";
+import { SetStateAction, Suspense, useEffect, useState } from "react";
 import { isAddress } from "web3-validator";
 import { useWeb3React } from "@web3-react/core";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -58,22 +58,24 @@ const Punks = () => {
           <Loader />
         </div>
       ) : (
-        <div>
-          <SearchForm
-            onSubmit={onSubmit}
-            value={address ?? ""}
-            onChange={handleChangeForm}
-          />
-          <div className="max-w-screen-xl grid grid-cols-1 md:grid md:grid-cols-4 gap-4 mt-5">
-            {punks.map(({ metadata: { name, image }, _tokenId }) => {
-              return (
-                <Link to={`/punks/${_tokenId}`} key={_tokenId}>
-                  <PunkCard name={name} image={image} />
-                </Link>
-              );
-            })}
+        <Suspense fallback={<Loader />}>
+          <div>
+            <SearchForm
+              onSubmit={onSubmit}
+              value={address ?? ""}
+              onChange={handleChangeForm}
+            />
+            <div className="max-w-screen-xl grid grid-cols-1 md:grid md:grid-cols-4 gap-4 mt-5">
+              {punks.map(({ metadata: { name, image }, _tokenId }) => {
+                return (
+                  <Link to={`/punks/${_tokenId}`} key={_tokenId}>
+                    <PunkCard name={name} image={image} />
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </Suspense>
       )}
     </div>
   );

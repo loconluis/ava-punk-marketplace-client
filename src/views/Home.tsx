@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useWeb3React } from "@web3-react/core";
 import toast, { Toaster } from "react-hot-toast";
+import Image from "../components/Image";
 import useAvaPunks from "../hooks/useAvaPunks";
-import { Link } from "react-router-dom";
-import { formattedAddress, getRandomNumber } from "../utils";
+import { formattedAddress } from "../utils";
+import Loader from "../components/Loader";
 
 const Home = () => {
+  const [loading, setLoading] = useState(false);
   const [imageSrc, setimageSrc] = useState("");
   const [isMinting, setIsMinting] = useState(false);
   const [randomNumber, setRandomNumber] = useState(0);
@@ -14,16 +17,17 @@ const Home = () => {
 
   const getAvaPunksData = useCallback(async () => {
     if (avaPunks) {
+      setLoading(true);
       const totalSupply = await avaPunks.methods.totalSupply().call();
-      const randomTokenId = getRandomNumber(0, Number(totalSupply));
       const dnaPreview = await avaPunks.methods
-        .deterministicPseudRandomDNA(randomTokenId, account)
+        .deterministicPseudRandomDNA(totalSupply, account)
         .call();
       const image: string = await avaPunks.methods
         .imageByDNA(dnaPreview)
         .call();
       setimageSrc(image);
-      setRandomNumber(randomTokenId);
+      setRandomNumber(Number(totalSupply));
+      setLoading(false);
     }
   }, [account, avaPunks]);
 
@@ -118,11 +122,14 @@ const Home = () => {
                 </div>
               </div>
               <div className="flex flex-col justify-center">
-                <img
-                  className="h-80"
-                  src={isActive ? imageSrc : "https://avataaars.io/"}
-                  alt="Italian Trulli"
-                />
+                {loading ? (
+                  <Loader />
+                ) : (
+                  <Image
+                    srcImg={isActive ? imageSrc : "https://avataaars.io/"}
+                    alt={"Next NFT"}
+                  />
+                )}
                 <div className="flex flex-row justify-center mt-2 gap-5">
                   <p className="py-2">
                     <span className="bg-slate-200 px-1 rounded text-black">

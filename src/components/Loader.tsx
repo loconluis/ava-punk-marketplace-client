@@ -1,6 +1,6 @@
 const Loader = ({ size }: { size?: number }) => {
   return (
-    <div role="status">
+    <div role="status" className="flex justify-center">
       <svg
         aria-hidden="true"
         className={`h-${
